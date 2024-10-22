@@ -1,13 +1,21 @@
 // import Image from "next/image";
-// import Card from "@/app/Card/Card";
-
+import Link from "next/link";
+import ButtonNavigate from "./components/ButtonNavigate";
+import { redirect } from "next/navigation";
+const isAuth = false;
 
 export default function Home() {
+  if(!isAuth) {
+    redirect('/login');
+  }
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <h1>jjaaja</h1>
-      </main>
-    </div>
+   <main>
+    <ul>
+      <li><Link href="/login">Login</Link></li>
+      <li><Link href="/register">Register</Link></li>
+    </ul>
+
+        <ButtonNavigate />
+   </main>
   );
 }

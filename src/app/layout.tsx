@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 
-import { Roboto } from 'next/font/google'
+// import { Roboto } from 'next/font/google'
 
-const roboto = Roboto({ subsets: ['vietnamese'], weight: ['100', '300'] })
+// const roboto = Roboto({ subsets: ['vietnamese'], weight: ['100', '300'] })
+import localFont from 'next/font/local'
+ 
+// Font files can be colocated inside of `pages`
+const myFont = localFont({
+  src: [
+    {
+      path: './Roboto-Thin.ttf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: './Roboto-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ]
+})
+ 
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -29,9 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      
       <body
-        className={roboto.className}
+        className={myFont.className}
       >
+        <header>kkkaak</header>
         {children}
       </body>
     </html>
