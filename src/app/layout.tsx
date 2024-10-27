@@ -4,7 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Inter } from 'next/font/google'
 import Header from "@/components/ui/header"
 import { Toaster } from "@/components/ui/toaster"
-
+import AppProvider from "./AppProvider"
+import { cookies } from "next/headers"
 const inter = Inter({ subsets: ['vietnamese'] })
 
  
@@ -28,8 +29,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Header />
-            {children}
+            <AppProvider initialSessionToken={cookies().get('sessionToken')?.value}>
+              <Header />
+              {children}
+            </AppProvider>
           </ThemeProvider>
       </body>
     </html>
