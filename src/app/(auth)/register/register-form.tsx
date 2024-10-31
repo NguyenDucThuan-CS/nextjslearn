@@ -15,13 +15,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RegisterBody, RegisterBodyType } from "@/schemaValidations/auth.schema"
 
-import envConfig from "@/config"
-
- 
+import { useRouter } from "next/navigation"
+import authApiRequest from "@/apiRequests/auth"
+import { useToast } from "@/components/hooks/use-toast"
+import { clientSessionToken } from "@/lib/http"
+import { handleErrorApi } from "@/lib/utils"
+import { useState } from "react"
 export default function Register() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_ENDPOINT;
-  console.log('kkaakaak', apiUrl);
-    const form = useForm<RegisterBodyType>({
+  const router = useRouter();   
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false)
+  const form = useForm<RegisterBodyType>({
         resolver: zodResolver(RegisterBody),
         defaultValues: {
             email: "",
@@ -33,14 +37,26 @@ export default function Register() {
      
       // 2. Define a submit handler.
       async function onSubmit(values: RegisterBodyType) {
-        const result = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/register`, {
-            method: "POST",
-            body: JSON.stringify(values),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        }).then(res => res.json());
-        console.log('result', result);
+        if(isLoading) return
+        setIsLoading(true)
+        try {
+          const result = await authApiRequest.register(values);
+          toast({
+                  description: result.payload.message,
+          });
+  
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const resultFromNextServer = await authApiRequest.auth({ sessionToken: result.payload.data.token });
+  
+         clientSessionToken.value = result.payload.data.token;
+         router.push('/me');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          handleErrorApi({ error, setError: form.setError })
+        } finally {
+          setIsLoading(false)
+        }
       }
     
     return <div>

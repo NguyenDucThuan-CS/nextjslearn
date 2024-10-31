@@ -7,7 +7,6 @@ const protectedRoutes = ['/me'];
 const authRoutes = ['/login', '/register'];
 export function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get('sessionToken')?.value;
-  console.log('sessionToken', sessionToken)
   if(protectedRoutes.includes(request.nextUrl.pathname) && !sessionToken) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -20,7 +19,8 @@ export function middleware(request: NextRequest) {
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
-    ...protectedRoutes,
-    ...authRoutes
+    '/me',
+    '/login',
+    '/register'
   ],
 }

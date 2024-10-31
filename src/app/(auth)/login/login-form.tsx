@@ -15,14 +15,16 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema"
 import { useToast } from "@/components/hooks/use-toast"
-import { useAppContext } from "@/app/AppProvider"
-
-import envConfig from "@/config"
-
+import authApiRequest from "@/apiRequests/auth"
+import { useRouter } from "next/navigation"
+import { clientSessionToken } from "@/lib/http"
+import { handleErrorApi } from "@/lib/utils"
+import { useState } from "react"
  
 export default function LoginForm() {
+    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
-    const { setSessionToken } = useAppContext();
+    const router = useRouter();
     const form = useForm<LoginBodyType>({
         resolver: zodResolver(LoginBody),
         defaultValues: {
@@ -33,69 +35,40 @@ export default function LoginForm() {
      
       // 2. Define a submit handler.
       async function onSubmit(values: LoginBodyType) {
+        if(isLoading) return
+        setIsLoading(true)
         try {
-        const result = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/login`, {
-            method: "POST",
-            body: JSON.stringify(values),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        }).then(async (res) => {
-            const payload = await res.json();
-            const data = {
-              status: res.status,
-              payload: payload
-            }
-            
-            if(!res.ok) {
-              throw data;
-            }
-            return data;
-        });
+        const result = await authApiRequest.login(values);
         toast({
-          description: result.payload.message,
+                description: result.payload.message,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const resultFromNextServer = await fetch(`/api/auth`, {
-          method: "POST",
-          body: JSON.stringify(result),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        }).then(async (res) => {
-          const payload = await res.json();
-          const data = {
-            status: res.status,
-            payload: payload
-          }
-          
-          if(!res.ok) {
-            throw data;
-          }
-          return data;
-      });
+        const resultFromNextServer = await authApiRequest.auth({ sessionToken: result.payload.data.token });
 
-        console.log(resultFromNextServer);
-
-       setSessionToken(resultFromNextServer.payload.data.token);
+       clientSessionToken.value = result.payload.data.token;
+       router.push('/me');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const errors = error.payload.errors as { field: string, message: string }[];
-        const status = error.status as number;
-        if(status === 422) {
-            errors.forEach((error) => {
-              form.setError(error.field as 'email' | 'password', { type: 'server', message: error.message });
-            });
-          }
-        else {
-            toast({
-              title: "Lỗi",
-              description: error.payload.message,
-              variant: "destructive",
-            });
-          }
+        // const errors = error.payload.errors as { field: string, message: string }[];
+        // const status = error.status as number;
+        // if(status === 422) {
+        //     errors.forEach((error) => {
+        //       form.setError(error.field as 'email' | 'password', { type: 'server', message: error.message });
+        //     });
+        //   }
+        // else {
+        //     toast({
+        //       title: "Lỗi",
+        //       description: error.payload.message,
+        //       variant: "destructive",
+        //     });
+        //   }
+
+        handleErrorApi({ error, setError: form.setError })
+      } finally {
+        setIsLoading(false)
       }
       }
     

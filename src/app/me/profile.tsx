@@ -2,10 +2,10 @@
 
 import { useEffect } from "react"
 import envConfig from "@/config"
-import { useAppContext } from "@/app/AppProvider"
+import { clientSessionToken } from "@/lib/http"
 
 export default function Profile() {
-    const { sessionToken } = useAppContext();
+    const sessionToken = clientSessionToken.value;
     useEffect(() => {
         const fetchData = async () => {
             const result = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/account/me`, {
