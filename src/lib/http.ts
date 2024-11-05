@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import envConfig from '@/config'
 import { LoginResType } from '@/schemaValidations/auth.schema'
+import { normalizePath } from './utils'
 
 
 const ENTITY_ERROR_STATUS = 422
+const AUTHENTICATION_ERROR_STATUS = 401
 
 type EntityErrorPayload = {
   message: string
@@ -101,14 +103,33 @@ const request = async <Response>(
       })
     }
 
-    else
-    throw new HttpError(data)
+    else if (res.status === AUTHENTICATION_ERROR_STATUS) {
+      if (typeof window !== 'undefined') {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ force: true }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        clientSessionToken.value = ''
+        location.href = '/login'
+      }
+    }
+    else {
+      throw new HttpError(data)
+    }
   }
-  if (url === 'auth/login' || url === 'auth/register') {
-    clientSessionToken.value = (payload as LoginResType).data.token
-  } else if (url === 'auth/logout') {
-    clientSessionToken.value = ''
+
+  if(typeof window !== 'undefined') {
+    if (['auth/login', 'auth/register'].some(item => item === normalizePath(url))) {
+      clientSessionToken.value = (payload as LoginResType).data.token
+    } else if ('auth/logout' === normalizePath(url)) {
+      clientSessionToken.value = ''
+    }
   }
+ 
   return data
 }
 

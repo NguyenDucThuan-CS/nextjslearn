@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
-export const handleErrorApi = ({ error, setError, duration  }: { error: any, setError: UseFormSetError<any>, duration?: number }) => {
+export const handleErrorApi = ({ error, setError, duration  }: { error: any, setError?: UseFormSetError<any>, duration?: number }) => {
   if(error instanceof HttpError && setError) {
     error.payload.errors.forEach((item: any) => {
       setError(item.field, { message: item.message })
@@ -25,4 +25,8 @@ export const handleErrorApi = ({ error, setError, duration  }: { error: any, set
       duration
     })
   }
+}
+
+export const normalizePath = (path: string) => {
+  return path.startsWith('/') ? path.slice(1) : path
 }
